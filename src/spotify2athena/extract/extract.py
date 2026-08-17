@@ -1,20 +1,18 @@
-import json
-from datetime import datetime
-import boto3
-import spotipy
-from spotipy.oauth2 import SpotifyOAuth
 import base64
-import urllib.request
+import json
 import urllib.parse
+import urllib.request
 from datetime import datetime
 
+import boto3
+import spotipy
 
 # Initialize AWS clients
 ssm = boto3.client('ssm')
 s3 = boto3.client('s3')
 
 def get_secrets():
-   # Fetch credentials securely from AWS SSM Parameter Store
+    # Fetch credentials securely from AWS SSM Parameter Store
     response = ssm.get_parameters(
         Names=[
             '/spotify2athena/client_id', 
@@ -32,12 +30,8 @@ def get_secrets():
     )
 
 def get_new_access_token(client_id, client_secret, refresh_token):
-    """Performs the raw OAuth refresh request against Spotify's token endpoint"""
-    auth_header = base64.b64encode(f"{client_id}:{client_secret}".encode('utf-8')).decode('utf-8')
-    
-    # CRITICAL FIX: Directing the payload to the API token engine instead of the homepage
+    auth_header = base64.b64encode(f"{client_id}:{client_secret}".encode()).decode('utf-8')
     url = "https://accounts.spotify.com/api/token"
-    
     headers = {
         "Authorization": f"Basic {auth_header}",
         "Content-Type": "application/x-www-form-urlencoded"
@@ -54,15 +48,15 @@ def get_new_access_token(client_id, client_secret, refresh_token):
 
 def lambda_handler(event, context):
     
-        # Get credentials from SSM
+    # Get credentials from SSM
     client_id, client_secret, refresh_token = get_secrets()
     access_token = get_new_access_token(client_id, client_secret, refresh_token)
        
-        # Extract Playlist data from Spotify and put it into a raw data S3 bucket
+    # Extract Playlist data from Spotify and put it into a raw data S3 bucket
     sp = spotipy.Spotify(auth=access_token)
     playlist_link = "https://open.spotify.com/playlist/0B9N1nOnhAVwbJKtCNP0Yp"
     playlist_URI = playlist_link.split("/")[-1].split("?")[0].strip()
-    filename = "spotify_raw_" + datetime.now().strftime("%Y%m%d_%H%M%S") + ".json"
+    filename = "spotify_raw_" + datetime.now(tz=datetime.UTC).strftime("%Y%m%d_%H%M%S") + ".json"
     bucket = 'phile-spotify1-raw-data'
     key_path = 'to_processed/'
     
