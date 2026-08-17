@@ -2,6 +2,7 @@
 .env
 *.envsecrets
 .yamlcredentials.json
+.cache/
 
 #Python and Data Tools
 __pycache__/
