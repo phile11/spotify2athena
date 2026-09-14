@@ -74,12 +74,11 @@ def lambda_handler(event, context):
         song_df = pd.DataFrame(song_list)
 
         # Convert dates
-        album_df['release_Date'] = 
-        album_df['release_date'] = pd.to_datetime(album_df['release_date'])
+        album_df['release_date'] = pd.to_datetime(album_df['release_date'], format='mixed')
         song_df['song_added'] = pd.to_datetime(song_df['song_added'])
 
         # Write transformed data to S3 as CSV
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.datetime.now(tz=datetime.UTC).strftime("%Y%m%d_%H%M%S")
 
         for df, name in [(album_df, "album"), (artist_df, "artist"), (song_df, "song")]:
             buffer = StringIO()
